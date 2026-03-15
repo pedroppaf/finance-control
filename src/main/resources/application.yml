@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: finance-control
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/finance_control
+    username: postgres
+    password: 0402
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  port: 8080
