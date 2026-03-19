@@ -5,6 +5,7 @@ import com.pedro.finance_control.dto.auth.LoginRequest;
 import com.pedro.finance_control.dto.auth.RegisterRequest;
 import com.pedro.finance_control.entity.User;
 import com.pedro.finance_control.repository.UserRepository;
+import com.pedro.finance_control.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     public AuthResponse register(RegisterRequest request){
         if (userRepository.existsByEmail(request.email())){
@@ -30,7 +32,9 @@ public class AuthService {
                 .build();
         userRepository.save(user);
 
-        return new AuthResponse("User sucessfully registered");
+        String token = jwtService.generateToken(user.getEmail());
+
+        return new AuthResponse(token);
     }
 
     public AuthResponse login(LoginRequest request){
@@ -40,6 +44,9 @@ public class AuthService {
         if(!passwordEncoder.matches(request.password(), user.getPassword())){
             throw new RuntimeException("Invalid email or password");
         }
-        return new AuthResponse("Login successful");
+
+        String token = jwtService.generateToken(user.getEmail());
+
+        return new AuthResponse(token);
     }
 }
