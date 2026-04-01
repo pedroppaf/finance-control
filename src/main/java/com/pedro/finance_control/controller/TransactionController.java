@@ -3,6 +3,7 @@ package com.pedro.finance_control.controller;
 
 import com.pedro.finance_control.dto.TransactionReponse;
 import com.pedro.finance_control.dto.TransactionRequest;
+import com.pedro.finance_control.dto.transaction.SummaryResponse;
 import com.pedro.finance_control.service.TransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,11 @@ public class TransactionController {
     @GetMapping("/{id}")
     public TransactionReponse findById(@PathVariable Long id){
         return transactionService.findById(id);
+    }
+
+    @GetMapping("/summary")
+    public SummaryResponse getSummary(){
+        return transactionService.getSummary();
     }
 
     @PutMapping("/{id}")
