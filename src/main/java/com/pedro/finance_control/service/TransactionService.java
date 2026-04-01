@@ -2,8 +2,10 @@ package com.pedro.finance_control.service;
 
 import com.pedro.finance_control.dto.TransactionReponse;
 import com.pedro.finance_control.dto.TransactionRequest;
+import com.pedro.finance_control.dto.transaction.SummaryResponse;
 import com.pedro.finance_control.entity.Transaction;
 import com.pedro.finance_control.entity.User;
+import com.pedro.finance_control.enums.TransactionType;
 import com.pedro.finance_control.repository.TransactionRepository;
 import com.pedro.finance_control.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -100,5 +102,17 @@ public class TransactionService {
                 transaction.getCreatedAt(),
                 transaction.getUpdatedAt()
         );
+    }
+
+    public SummaryResponse getSummary(){
+        User user = getAuthenticatedUser();
+
+        Double receita = transactionRepository.sumByType(user, TransactionType.RECEITA);
+
+        Double despesa = transactionRepository.sumByType(user, TransactionType.DESPESA);
+
+        Double balance = receita - despesa;
+
+        return new SummaryResponse(receita, despesa, balance);
     }
 }
