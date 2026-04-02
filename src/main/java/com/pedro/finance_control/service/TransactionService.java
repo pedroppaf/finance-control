@@ -9,9 +9,12 @@ import com.pedro.finance_control.enums.TransactionType;
 import com.pedro.finance_control.repository.TransactionRepository;
 import com.pedro.finance_control.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -114,5 +117,16 @@ public class TransactionService {
         Double balance = receita - despesa;
 
         return new SummaryResponse(receita, despesa, balance);
+    }
+
+    public Page<TransactionReponse> findAll(TransactionType type,
+                                            LocalDate startDate,
+                                            LocalDate endDate,
+                                            Pageable pageable
+    ){
+        User user = getAuthenticatedUser();
+
+        Page<Transaction> page = transactionRepository.findWithFilters(user, type, startDate, endDate, pageable);
+        return page.map(this::toResponse);
     }
 }
