@@ -5,6 +5,7 @@ import com.pedro.finance_control.dto.TransactionReponse;
 import com.pedro.finance_control.dto.TransactionRequest;
 import com.pedro.finance_control.dto.transaction.SummaryResponse;
 import com.pedro.finance_control.enums.TransactionType;
+import com.pedro.finance_control.response.ApiResponse;
 import com.pedro.finance_control.service.TransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,13 +25,13 @@ public class TransactionController {
     private final TransactionService transactionService;
 
     @PostMapping
-    public TransactionReponse create(@RequestBody @Valid TransactionRequest request){
-        return  transactionService.create(request);
+    public ApiResponse<TransactionReponse> create(@RequestBody @Valid TransactionRequest request){
+        return  ApiResponse.success(transactionService.create(request), "Transaction created successfully");
     }
 
     @GetMapping("/{id}")
-    public TransactionReponse findById(@PathVariable Long id){
-        return transactionService.findById(id);
+    public ApiResponse<TransactionReponse> findById(@PathVariable Long id){
+        return ApiResponse.success(transactionService.findById(id));
     }
 
     @GetMapping("/summary")
@@ -39,28 +40,29 @@ public class TransactionController {
     }
 
     @GetMapping
-    public Page<TransactionReponse> findAll(@RequestParam(required = false)TransactionType type,
+    public ApiResponse<Page<TransactionReponse>> findAll(@RequestParam(required = false)TransactionType type,
 
-                                            @RequestParam(required = false)
+                                                        @RequestParam(required = false)
                                             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                                             LocalDate startDate,
 
-                                            @RequestParam(required = false)
+                                                        @RequestParam(required = false)
                                             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                                             LocalDate endDate,
 
-                                            Pageable pageable
+                                                        Pageable pageable
                                             ){
-        return  transactionService.findAll(type, startDate, endDate, pageable);
+        return ApiResponse.success(transactionService.findAll(type, startDate, endDate, pageable));
     }
 
     @PutMapping("/{id}")
-    public TransactionReponse update(@PathVariable Long id, @RequestBody @Valid TransactionRequest request){
-        return transactionService.update(id, request);
+    public ApiResponse<TransactionReponse> update(@PathVariable Long id, @RequestBody @Valid TransactionRequest request){
+        return ApiResponse.success(transactionService.update(id, request), "Transaction updated successfully");
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
+    public ApiResponse<Void> delete(@PathVariable Long id) {
         transactionService.delete(id);
+        return ApiResponse.success(null, "Transaction deleted successfully");
     }
 }
