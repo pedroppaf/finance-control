@@ -1,7 +1,6 @@
 package com.pedro.finance_control.controller;
 
-
-import com.pedro.finance_control.dto.TransactionReponse;
+import com.pedro.finance_control.dto.TransactionResponse;
 import com.pedro.finance_control.dto.TransactionRequest;
 import com.pedro.finance_control.dto.transaction.SummaryResponse;
 import com.pedro.finance_control.enums.TransactionType;
@@ -13,9 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
-
 import java.time.LocalDate;
-import java.util.List;
 
 @RestController
 @RequestMapping("/transactions")
@@ -25,12 +22,12 @@ public class TransactionController {
     private final TransactionService transactionService;
 
     @PostMapping
-    public ApiResponse<TransactionReponse> create(@RequestBody @Valid TransactionRequest request){
+    public ApiResponse<TransactionResponse> create(@RequestBody @Valid TransactionRequest request){
         return  ApiResponse.success(transactionService.create(request), "Transaction created successfully");
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<TransactionReponse> findById(@PathVariable Long id){
+    public ApiResponse<TransactionResponse> findById(@PathVariable Long id){
         return ApiResponse.success(transactionService.findById(id));
     }
 
@@ -40,7 +37,7 @@ public class TransactionController {
     }
 
     @GetMapping
-    public ApiResponse<Page<TransactionReponse>> findAll(@RequestParam(required = false)TransactionType type,
+    public ApiResponse<Page<TransactionResponse>> findAll(@RequestParam(required = false)TransactionType type,
 
                                                         @RequestParam(required = false)
                                             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -56,7 +53,7 @@ public class TransactionController {
     }
 
     @PutMapping("/{id}")
-    public ApiResponse<TransactionReponse> update(@PathVariable Long id, @RequestBody @Valid TransactionRequest request){
+    public ApiResponse<TransactionResponse> update(@PathVariable Long id, @RequestBody @Valid TransactionRequest request){
         return ApiResponse.success(transactionService.update(id, request), "Transaction updated successfully");
     }
 
