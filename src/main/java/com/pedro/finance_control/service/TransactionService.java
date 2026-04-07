@@ -1,6 +1,6 @@
 package com.pedro.finance_control.service;
 
-import com.pedro.finance_control.dto.TransactionReponse;
+import com.pedro.finance_control.dto.TransactionResponse;
 import com.pedro.finance_control.dto.TransactionRequest;
 import com.pedro.finance_control.dto.transaction.SummaryResponse;
 import com.pedro.finance_control.entity.Transaction;
@@ -13,7 +13,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,7 +24,7 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
 
-    public TransactionReponse create(TransactionRequest request) {
+    public TransactionResponse create(TransactionRequest request) {
         User user = getAuthenticatedUser();
 
         Transaction transaction = Transaction.builder()
@@ -44,7 +43,7 @@ public class TransactionService {
         return toResponse(savedTransaction);
     }
 
-    public List<TransactionReponse> findAll() {
+    public List<TransactionResponse> findAll() {
         User user = getAuthenticatedUser();
         return transactionRepository.findByUser(user)
                 .stream()
@@ -52,14 +51,14 @@ public class TransactionService {
                 .toList();
     }
 
-    public TransactionReponse findById(Long id){
+    public TransactionResponse findById(Long id){
         User user = getAuthenticatedUser();
         Transaction transaction = transactionRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new RuntimeException("Transaction not found"));
         return toResponse(transaction);
     }
 
-    public TransactionReponse update (Long id, TransactionRequest request){
+    public TransactionResponse update (Long id, TransactionRequest request){
         User user = getAuthenticatedUser();
 
         Transaction transaction = transactionRepository.findByIdAndUser(id, user)
@@ -94,8 +93,8 @@ public class TransactionService {
                 .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
     }
 
-    private TransactionReponse toResponse(Transaction transaction) {
-        return new TransactionReponse(transaction.getId(),
+    private TransactionResponse toResponse(Transaction transaction) {
+        return new TransactionResponse(transaction.getId(),
                 transaction.getTitle(),
                 transaction.getDescription(),
                 transaction.getAmount(),
@@ -119,7 +118,7 @@ public class TransactionService {
         return new SummaryResponse(receita, despesa, balance);
     }
 
-    public Page<TransactionReponse> findAll(TransactionType type,
+    public Page<TransactionResponse> findAll(TransactionType type,
                                             LocalDate startDate,
                                             LocalDate endDate,
                                             Pageable pageable
