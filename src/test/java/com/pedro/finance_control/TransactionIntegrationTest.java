@@ -11,11 +11,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.UUID;
-
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -46,6 +44,13 @@ class TransactionIntegrationTest {
     }
 
     @Test
+    void shouldReturnUnauthorizedWhenTokenIsInvalid() throws Exception {
+        mockMvc.perform(get("/transactions")
+                .header("Authorization", "Bearer invalid-token-with-dot.structure"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void shouldCreateTransactionSuccessfully() throws Exception {
         String token = registerAndGetToken();
 
@@ -55,7 +60,7 @@ class TransactionIntegrationTest {
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("Transaction created successfully"))
                 .andExpect(jsonPath("$.data.id").exists())
@@ -103,8 +108,8 @@ class TransactionIntegrationTest {
 
         mockMvc.perform(get("/transactions/{id}", 999999L)
                         .header("Authorization", "Bearer " + token))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Bad Request"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Not Found"))
                 .andExpect(jsonPath("$.message").value("Transaction not found"));
     }
 
@@ -141,13 +146,11 @@ class TransactionIntegrationTest {
 
         mockMvc.perform(delete("/transactions/{id}", id)
                         .header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Transaction deleted successfully"));
+                .andExpect(status().isNoContent());
 
         mockMvc.perform(get("/transactions/{id}", id)
                         .header("Authorization", "Bearer " + token))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Transaction not found"));
     }
 
@@ -193,6 +196,116 @@ class TransactionIntegrationTest {
                 .andExpect(jsonPath("$.balance").value(3800.0));
     }
 
+    @Test
+    void shouldReturnEmptyPageWhenUserHasNoTransactions() throws Exception {
+        String token = registerAndGetToken();
+
+        mockMvc.perform(get("/transactions")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content").isArray())
+                .andExpect(jsonPath("$.data.content.length()").value(0));
+    }
+
+    @Test
+    void shouldReturnEmptyResultWhenFilterHasNoMatches() throws Exception {
+        String token = registerAndGetToken();
+
+        String request = transactionJson("Salário", "Receita", "5000.00", "RECEITA", "SALARIO", "2026-01-10");
+        createTransactionAndGetId(token, request);
+
+        mockMvc.perform(get("/transactions")
+                        .header("Authorization", "Bearer " + token)
+                        .param("type", "DESPESA"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content.length()").value(0));
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenTransactionAmountIsZero() throws Exception {
+        String token = registerAndGetToken();
+
+        String invalidJson = """
+            {
+                "title": "Zero Amount",
+                "description": "Invalid transaction",
+                "amount": 0.00,
+                "type": "RECEITA",
+                "category": "SALARIO",
+                "date": "2026-01-10"
+            }
+            """;
+
+        mockMvc.perform(post("/transactions")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalidJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Validation Error"))
+                .andExpect(jsonPath("$.message", containsString("greater")));
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenTransactionAmountIsNegative() throws Exception {
+        String token = registerAndGetToken();
+
+        String invalidJson = """
+            {
+                "title": "Negative Amount",
+                "description": "Invalid transaction",
+                "amount": -100.00,
+                "type": "RECEITA",
+                "category": "SALARIO",
+                "date": "2026-01-10"
+            }
+            """;
+
+        mockMvc.perform(post("/transactions")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalidJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Validation Error"));
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenTitleIsEmpty() throws Exception {
+        String token = registerAndGetToken();
+
+        String invalidJson = """
+            {
+                "title": "",
+                "description": "Invalid transaction",
+                "amount": 100.00,
+                "type": "RECEITA",
+                "category": "SALARIO",
+                "date": "2026-01-10"
+            }
+            """;
+
+        mockMvc.perform(post("/transactions")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalidJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Validation Error"));
+    }
+
+    @Test
+    void shouldAcceptTransactionWithMinimumValidAmount() throws Exception {
+        String token = registerAndGetToken();
+
+        String request = transactionJson("Min Amount", "Teste", "0.01", "RECEITA", "SALARIO", "2026-01-10");
+
+        mockMvc.perform(post("/transactions")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.amount").value(0.01));
+    }
+
     private String registerAndGetToken() throws Exception {
         String email = "user-" + UUID.randomUUID() + "@email.com";
 
@@ -213,7 +326,7 @@ class TransactionIntegrationTest {
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andReturn();
 
         return Long.parseLong(extractValue(result.getResponse().getContentAsString(), "id"));
