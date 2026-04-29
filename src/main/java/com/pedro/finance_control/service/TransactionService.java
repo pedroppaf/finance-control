@@ -6,6 +6,8 @@ import com.pedro.finance_control.dto.transaction.SummaryResponse;
 import com.pedro.finance_control.entity.Transaction;
 import com.pedro.finance_control.entity.User;
 import com.pedro.finance_control.enums.TransactionType;
+import com.pedro.finance_control.exception.ResourceNotFoundException;
+import com.pedro.finance_control.exception.UnauthorizedAccessException;
 import com.pedro.finance_control.repository.TransactionRepository;
 import com.pedro.finance_control.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -54,7 +56,7 @@ public class TransactionService {
     public TransactionResponse findById(Long id){
         User user = getAuthenticatedUser();
         Transaction transaction = transactionRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));
         return toResponse(transaction);
     }
 
@@ -62,7 +64,7 @@ public class TransactionService {
         User user = getAuthenticatedUser();
 
         Transaction transaction = transactionRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));
 
         transaction.setTitle(request.title());
         transaction.setDescription(request.description());
@@ -81,7 +83,7 @@ public class TransactionService {
         User user = getAuthenticatedUser();
 
         Transaction transaction = transactionRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));
 
         transactionRepository.delete(transaction);
     }
@@ -90,7 +92,7 @@ public class TransactionService {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
+                .orElseThrow(() -> new UnauthorizedAccessException("Authenticated user not found"));
     }
 
     private TransactionResponse toResponse(Transaction transaction) {

@@ -4,6 +4,7 @@ import com.pedro.finance_control.dto.auth.AuthResponse;
 import com.pedro.finance_control.dto.auth.LoginRequest;
 import com.pedro.finance_control.dto.auth.RegisterRequest;
 import com.pedro.finance_control.entity.User;
+import com.pedro.finance_control.exception.BusinessRuleException;
 import com.pedro.finance_control.repository.UserRepository;
 import com.pedro.finance_control.security.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,7 @@ public class AuthService {
 
     public AuthResponse register(RegisterRequest request){
         if (userRepository.existsByEmail(request.email())){
-            throw new RuntimeException("Email already registered");
+            throw new BusinessRuleException("Email already registered");
         }
         User user = User.builder()
                 .name(request.name())
@@ -39,10 +40,10 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest request){
         User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+                .orElseThrow(() -> new BusinessRuleException("Invalid email or password"));
 
         if(!passwordEncoder.matches(request.password(), user.getPassword())){
-            throw new RuntimeException("Invalid email or password");
+            throw new BusinessRuleException("Invalid email or password");
         }
 
         String token = jwtService.generateToken(user.getEmail());
