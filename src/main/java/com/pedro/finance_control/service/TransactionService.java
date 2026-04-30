@@ -10,6 +10,7 @@ import com.pedro.finance_control.exception.ResourceNotFoundException;
 import com.pedro.finance_control.exception.UnauthorizedAccessException;
 import com.pedro.finance_control.repository.TransactionRepository;
 import com.pedro.finance_control.repository.UserRepository;
+import com.pedro.finance_control.response.PageDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -120,7 +121,7 @@ public class TransactionService {
         return new SummaryResponse(receita, despesa, balance);
     }
 
-    public Page<TransactionResponse> findAll(TransactionType type,
+    public PageDto<TransactionResponse> findAll(TransactionType type,
                                             LocalDate startDate,
                                             LocalDate endDate,
                                             Pageable pageable
@@ -128,6 +129,17 @@ public class TransactionService {
         User user = getAuthenticatedUser();
 
         Page<Transaction> page = transactionRepository.findWithFilters(user, type, startDate, endDate, pageable);
-        return page.map(this::toResponse);
+        List<TransactionResponse> content = page.getContent()
+                .stream()
+                .map(this::toResponse)
+                .toList();
+
+        return new PageDto<>(
+            content,
+            page.getNumber(),
+            page.getSize(),
+            page.getTotalElements(),
+            page.getTotalPages()
+        );
     }
 }

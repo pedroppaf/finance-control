@@ -8,6 +8,7 @@ import com.pedro.finance_control.enums.Category;
 import com.pedro.finance_control.enums.TransactionType;
 import com.pedro.finance_control.repository.TransactionRepository;
 import com.pedro.finance_control.repository.UserRepository;
+import com.pedro.finance_control.response.PageDto;
 import com.pedro.finance_control.service.TransactionService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -222,23 +223,23 @@ class TransactionServiceTest {
         transaction.setTitle("Janeiro");
         transaction.setAmount(new BigDecimal("5000.00"));
         transaction.setType(TransactionType.RECEITA);
-        transaction.setCreatedAt(LocalDateTime.now());
+        transaction.setCreatedAt(java.time.LocalDateTime.now());
         transaction.setUser(user);
 
         PageRequest pageable = PageRequest.of(0, 10);
         when(userRepository.findByEmail("test@email.com")).thenReturn(Optional.of(user));
-        when(transactionRepository.findWithFilters(user, TransactionType.RECEITA, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31), pageable))
+        when(transactionRepository.findWithFilters(user, TransactionType.RECEITA, java.time.LocalDate.of(2026, 1, 1), java.time.LocalDate.of(2026, 1, 31), pageable))
                 .thenReturn(new PageImpl<>(List.of(transaction), pageable, 1));
 
-        Page<TransactionResponse> page = transactionService.findAll(
+        PageDto<TransactionResponse> page = transactionService.findAll(
                 TransactionType.RECEITA,
-                LocalDate.of(2026, 1, 1),
-                LocalDate.of(2026, 1, 31),
+                java.time.LocalDate.of(2026, 1, 1),
+                java.time.LocalDate.of(2026, 1, 31),
                 pageable
         );
 
-        assertEquals(1, page.getTotalElements());
-        assertEquals("Janeiro", page.getContent().getFirst().title());
+        assertEquals(1, page.totalElements());
+        assertEquals("Janeiro", page.content().getFirst().title());
     }
 
     @Test

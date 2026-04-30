@@ -30,6 +30,8 @@ public class GlobalExceptionHandler  {
 
     @ExceptionHandler(UnauthorizedAccessException.class)
     public ResponseEntity<ErrorResponse> handleUnauthorized(UnauthorizedAccessException ex, HttpServletRequest request){
+        logger.warn("Unauthorized: {}", ex.getMessage());
+
         ErrorResponse error = new ErrorResponse(
                 LocalDateTime.now(),
                 HttpStatus.UNAUTHORIZED.value(), "Unauthorized",
@@ -41,6 +43,8 @@ public class GlobalExceptionHandler  {
 
     @ExceptionHandler(BusinessRuleException.class)
     public ResponseEntity<ErrorResponse> handleBusinessRule(BusinessRuleException ex, HttpServletRequest request) {
+        logger.warn("Business rule violation: {}", ex.getMessage());
+
         ErrorResponse error = new ErrorResponse(
                 LocalDateTime.now(),
                 HttpStatus.BAD_REQUEST.value(),
@@ -61,6 +65,8 @@ public class GlobalExceptionHandler  {
                 .map(e -> e.getField() + ": " + e.getDefaultMessage())
                 .orElse("Validation error");
 
+        logger.info("Validation error: {} for {}", message, request.getRequestURI());
+
         ErrorResponse error = new ErrorResponse(
                 LocalDateTime.now(),
                 HttpStatus.BAD_REQUEST.value(), "Validation Error",
@@ -73,6 +79,8 @@ public class GlobalExceptionHandler  {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneric(Exception ex, HttpServletRequest request){
+        logger.error("Unhandled exception for {}: {}", request.getRequestURI(), ex.getMessage(), ex);
+
         ErrorResponse error = new ErrorResponse(
                 LocalDateTime.now(),
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
