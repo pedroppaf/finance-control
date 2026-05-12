@@ -22,7 +22,7 @@ class UserRepositoryTest {
 
     @Test
     void shouldFindUserByEmail() {
-        User user = new User(null, "Pedro", "pedro@email.com", "password", LocalDateTime.now());
+        User user = new User(null, "USER", "Pedro", "pedro@email.com", "password", LocalDateTime.now());
         userRepository.save(user);
 
         assertTrue(userRepository.findByEmail("pedro@email.com").isPresent());
@@ -31,12 +31,10 @@ class UserRepositoryTest {
 
     @Test
     void shouldReturnTrueWhenEmailExists() {
-        User user = new User(null, "Pedro", "pedro@email.com", "password", LocalDateTime.now());
+        User user = new User(null, "USER", "Pedro", "pedro@email.com", "password", LocalDateTime.now());
         userRepository.save(user);
 
         assertTrue(userRepository.existsByEmail("pedro@email.com"));
         assertFalse(userRepository.existsByEmail("other@email.com"));
     }
 }
-
-

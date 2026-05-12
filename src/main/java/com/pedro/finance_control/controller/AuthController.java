@@ -2,6 +2,8 @@ package com.pedro.finance_control.controller;
 
 import com.pedro.finance_control.dto.auth.AuthResponse;
 import com.pedro.finance_control.dto.auth.LoginRequest;
+import com.pedro.finance_control.dto.auth.LogoutRequest;
+import com.pedro.finance_control.dto.auth.RefreshRequest;
 import com.pedro.finance_control.dto.auth.RegisterRequest;
 import com.pedro.finance_control.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,5 +46,17 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(@RequestBody @Valid LoginRequest request){
         AuthResponse response = authService.login(request);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refresh(@RequestBody RefreshRequest request) {
+        AuthResponse response = authService.refresh(request.refreshToken());
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@RequestBody @Valid LogoutRequest request, Authentication authentication) {
+        authService.logout(authentication.getName(), request.refreshToken());
+        return ResponseEntity.noContent().build();
     }
 }
