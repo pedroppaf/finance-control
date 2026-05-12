@@ -33,8 +33,8 @@ class TransactionRepositoryTest {
 
     @Test
     void shouldFindTransactionsByUser() {
-        User user = userRepository.save(new User(null, "Pedro", "pedro@email.com", "password", LocalDateTime.now()));
-        User otherUser = userRepository.save(new User(null, "Maria", "maria@email.com", "password", LocalDateTime.now()));
+        User user = userRepository.save(new User(null, "USER", "Pedro", "pedro@email.com", "password", LocalDateTime.now()));
+        User otherUser = userRepository.save(new User(null, "USER", "Maria", "maria@email.com", "password", LocalDateTime.now()));
 
         transactionRepository.save(Transaction.builder()
                 .title("Salário")
@@ -66,7 +66,7 @@ class TransactionRepositoryTest {
 
     @Test
     void shouldFindTransactionByIdAndUser() {
-        User user = userRepository.save(new User(null, "Pedro", "pedro@email.com", "password", LocalDateTime.now()));
+        User user = userRepository.save(new User(null, "USER", "Pedro", "pedro@email.com", "password", LocalDateTime.now()));
 
         Transaction transaction = transactionRepository.save(Transaction.builder()
                 .title("Mercado")
@@ -80,12 +80,12 @@ class TransactionRepositoryTest {
                 .build());
 
         assertTrue(transactionRepository.findByIdAndUser(transaction.getId(), user).isPresent());
-        assertFalse(transactionRepository.findByIdAndUser(transaction.getId(), new User(999L, "Maria", "maria@email.com", "password", LocalDateTime.now())).isPresent());
+        assertFalse(transactionRepository.findByIdAndUser(transaction.getId(), new User(999L, "USER", "Maria", "maria@email.com", "password", LocalDateTime.now())).isPresent());
     }
 
     @Test
     void shouldSumTransactionsByType() {
-        User user = userRepository.save(new User(null, "Pedro", "pedro@email.com", "password", LocalDateTime.now()));
+        User user = userRepository.save(new User(null, "USER", "Pedro", "pedro@email.com", "password", LocalDateTime.now()));
 
         transactionRepository.save(Transaction.builder()
                 .title("Salário")
@@ -126,7 +126,7 @@ class TransactionRepositoryTest {
 
     @Test
     void shouldFindTransactionsWithFilters() {
-        User user = userRepository.save(new User(null, "Pedro", "pedro@email.com", "password", LocalDateTime.now()));
+        User user = userRepository.save(new User(null, "USER", "Pedro", "pedro@email.com", "password", LocalDateTime.now()));
 
         transactionRepository.save(Transaction.builder()
                 .title("Janeiro")
@@ -162,5 +162,3 @@ class TransactionRepositoryTest {
         assertEquals("Janeiro", page.getContent().get(0).getTitle());
     }
 }
-
-

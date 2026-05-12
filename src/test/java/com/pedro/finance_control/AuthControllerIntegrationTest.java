@@ -7,9 +7,14 @@ import jakarta.servlet.Filter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
+
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -34,16 +39,18 @@ class AuthControllerIntegrationTest {
 
     @Test
     void shouldRegisterUserSuccessfully() throws Exception {
+        String email = "pedro-" + UUID.randomUUID() + "@email.com";
         RegisterRequest request = new RegisterRequest(
                 "Pedro",
-                "pedro@email.com",
+                email,
                 "123456");
 
         mockMvc().perform(post("/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(registerJson(request.name(), request.email(), request.password())))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.token").exists());
+                .andExpect(jsonPath("$.token").exists())
+                .andExpect(jsonPath("$.refreshToken").exists());
     }
 
     @Test
@@ -84,10 +91,11 @@ class AuthControllerIntegrationTest {
 
     @Test
     void shouldLoginSuccessfully() throws Exception {
+        String email = "pedro-" + UUID.randomUUID() + "@email.com";
         // registra usuário
         RegisterRequest register = new RegisterRequest(
                 "Pedro",
-                "pedro@email.com",
+                email,
                 "123456");
 
         mockMvc().perform(post("/auth/register")
@@ -96,16 +104,59 @@ class AuthControllerIntegrationTest {
 
         String loginJson = """
                     {
-                        "email": "pedro@email.com",
+                        "email": "%s",
                         "password": "123456"
                     }
-                """;
+                """.formatted(email);
 
         mockMvc().perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(loginJson))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").exists());
+                .andExpect(jsonPath("$.token").exists())
+                .andExpect(jsonPath("$.refreshToken").exists());
+    }
+
+    @Test
+    void shouldRefreshAndLogoutSuccessfully() throws Exception {
+        String email = "pedro-" + UUID.randomUUID() + "@email.com";
+
+        MvcResult register = mockMvc().perform(post("/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(registerJson("Pedro", email, "123456")))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        String accessToken = extractValue(register.getResponse().getContentAsString(), "token");
+        String refreshToken = extractValue(register.getResponse().getContentAsString(), "refreshToken");
+
+        String refreshJson = """
+                    {
+                        "refreshToken": "%s"
+                    }
+                """.formatted(refreshToken);
+
+        MvcResult refreshed = mockMvc().perform(post("/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(refreshJson))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").exists())
+                .andExpect(jsonPath("$.refreshToken").exists())
+                .andReturn();
+
+        String newRefreshToken = extractValue(refreshed.getResponse().getContentAsString(), "refreshToken");
+
+        String logoutJson = """
+                    {
+                        "refreshToken": "%s"
+                    }
+                """.formatted(newRefreshToken);
+
+        mockMvc().perform(post("/auth/logout")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(logoutJson))
+                .andExpect(status().isNoContent());
     }
 
     @Test
@@ -122,6 +173,15 @@ class AuthControllerIntegrationTest {
                     "password": "%s"
                 }
                 """.formatted(name, email, password);
+    }
+
+    private String extractValue(String json, String field) {
+        Pattern pattern = Pattern.compile("\\\"" + field + "\\\":\\\"([^\\\"]+)\\\"");
+        Matcher matcher = pattern.matcher(json);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        throw new IllegalStateException("Field not found in JSON response: " + field);
     }
 
 
