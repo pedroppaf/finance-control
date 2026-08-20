@@ -48,12 +48,22 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Refresh access token", description = "Generate a new access token using a valid refresh token")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Token refreshed successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request body"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized")})
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponse> refresh(@RequestBody RefreshRequest request) {
+    public ResponseEntity<AuthResponse> refresh(@RequestBody @Valid RefreshRequest request) {
         AuthResponse response = authService.refresh(request.refreshToken());
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Logout a user", description = "Revoke the refresh token for the authenticated user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "User logged out successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request body"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized")})
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@RequestBody @Valid LogoutRequest request, Authentication authentication) {
         authService.logout(authentication.getName(), request.refreshToken());

@@ -16,6 +16,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -112,11 +114,9 @@ public class TransactionService {
     public SummaryResponse getSummary(){
         User user = getAuthenticatedUser();
 
-        Double receita = transactionRepository.sumByType(user, TransactionType.RECEITA);
-
-        Double despesa = transactionRepository.sumByType(user, TransactionType.DESPESA);
-
-        Double balance = receita - despesa;
+        BigDecimal receita = transactionRepository.sumByType(user, TransactionType.RECEITA);
+        BigDecimal despesa = transactionRepository.sumByType(user, TransactionType.DESPESA);
+        BigDecimal balance = receita.subtract(despesa);
 
         return new SummaryResponse(receita, despesa, balance);
     }
