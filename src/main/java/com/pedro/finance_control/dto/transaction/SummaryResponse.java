@@ -1,6 +1,8 @@
 package com.pedro.finance_control.dto.transaction;
 
-public record SummaryResponse (Double receita,
-                               Double despesa,
-                               Double balance){
+import java.math.BigDecimal;
+
+public record SummaryResponse (BigDecimal receita,
+                               BigDecimal despesa,
+                               BigDecimal balance){
 }
