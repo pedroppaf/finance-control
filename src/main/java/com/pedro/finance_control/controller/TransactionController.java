@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
 import java.time.LocalDate;
 
 @RestController
@@ -34,8 +35,8 @@ public class TransactionController {
             @ApiResponse(responseCode = "400", description = "Invalid request body"),
             @ApiResponse(responseCode = "401", description = "Unauthorized - missing or invalid token")})
     @PostMapping
-    public ResponseEntity<AppApiResponse<TransactionResponse>> create(@RequestBody @Valid TransactionRequest request){
-        return  ResponseEntity.status(HttpStatus.CREATED)
+    public ResponseEntity<AppApiResponse<TransactionResponse>> create(@RequestBody @Valid TransactionRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
                 .body(AppApiResponse.success(transactionService.create(request), "Transaction created successfully"));
     }
 
@@ -45,7 +46,7 @@ public class TransactionController {
             @ApiResponse(responseCode = "404", description = "Transaction not found"),
             @ApiResponse(responseCode = "401", description = "Unauthorized - missing or invalid token")})
     @GetMapping("/{id}")
-    public AppApiResponse<TransactionResponse> findById(@PathVariable Long id){
+    public AppApiResponse<TransactionResponse> findById(@PathVariable Long id) {
         return AppApiResponse.success(transactionService.findById(id));
     }
 
@@ -54,8 +55,8 @@ public class TransactionController {
             @ApiResponse(responseCode = "200", description = "Summary retrieved successfully"),
             @ApiResponse(responseCode = "401", description = "Unauthorized - missing or invalid token")})
     @GetMapping("/summary")
-    public SummaryResponse getSummary(){
-        return transactionService.getSummary();
+    public AppApiResponse<SummaryResponse> getSummary() {
+        return AppApiResponse.success(transactionService.getSummary());
     }
 
     @Operation(summary = "List transactions", description = "List all transactions with optional filters")
@@ -64,17 +65,14 @@ public class TransactionController {
             @ApiResponse(responseCode = "401", description = "Unauthorized - missing or invalid token")})
     @GetMapping
     public AppApiResponse<PageDto<TransactionResponse>> findAll(@RequestParam(required = false) TransactionType type,
-
-                                                        @RequestParam(required = false)
-                                        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-                                        LocalDate startDate,
-
-                                                        @RequestParam(required = false)
-                                        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-                                        LocalDate endDate,
-
-                                                        Pageable pageable
-                                    ){
+                                                                @RequestParam(required = false)
+                                                                @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                                                                LocalDate startDate,
+                                                                @RequestParam(required = false)
+                                                                @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                                                                LocalDate endDate,
+                                                                Pageable pageable
+    ) {
         return AppApiResponse.success(transactionService.findAll(type, startDate, endDate, pageable));
     }
 
@@ -85,7 +83,7 @@ public class TransactionController {
             @ApiResponse(responseCode = "404", description = "Transaction not found"),
             @ApiResponse(responseCode = "401", description = "Unauthorized - missing or invalid token")})
     @PutMapping("/{id}")
-    public AppApiResponse<TransactionResponse> update(@PathVariable Long id, @RequestBody @Valid TransactionRequest request){
+    public AppApiResponse<TransactionResponse> update(@PathVariable Long id, @RequestBody @Valid TransactionRequest request) {
         return AppApiResponse.success(transactionService.update(id, request), "Transaction updated successfully");
     }
 

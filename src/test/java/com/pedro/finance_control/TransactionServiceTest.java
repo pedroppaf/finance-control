@@ -162,14 +162,14 @@ class TransactionServiceTest {
         user.setEmail("test@email.com");
 
         when(userRepository.findByEmail("test@email.com")).thenReturn(Optional.of(user));
-        when(transactionRepository.sumByType(user, TransactionType.RECEITA)).thenReturn(6500.0);
-        when(transactionRepository.sumByType(user, TransactionType.DESPESA)).thenReturn(1200.0);
+        when(transactionRepository.sumByType(user, TransactionType.RECEITA)).thenReturn(new BigDecimal("6500.00"));
+        when(transactionRepository.sumByType(user, TransactionType.DESPESA)).thenReturn(new BigDecimal("1200.00"));
 
         var summary = transactionService.getSummary();
 
-        assertEquals(6500.0, summary.receita());
-        assertEquals(1200.0, summary.despesa());
-        assertEquals(5300.0, summary.balance());
+        assertEquals(new BigDecimal("6500.00"), summary.receita());
+        assertEquals(new BigDecimal("1200.00"), summary.despesa());
+        assertEquals(new BigDecimal("5300.00"), summary.balance());
     }
 
     @Test
