@@ -3,6 +3,7 @@ package com.pedro.finance_control.service;
 import com.pedro.finance_control.dto.auth.AuthResponse;
 import com.pedro.finance_control.dto.auth.LoginRequest;
 import com.pedro.finance_control.dto.auth.RegisterRequest;
+import com.pedro.finance_control.dto.auth.UserResponse;
 import com.pedro.finance_control.entity.User;
 import com.pedro.finance_control.exception.BusinessRuleException;
 import com.pedro.finance_control.repository.UserRepository;
@@ -86,5 +87,17 @@ public class AuthService {
         }
 
         refreshTokenService.revoke(tokenEntity);
+    }
+
+    public UserResponse getAuthenticatedUser(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessRuleException("User not found"));
+        return new UserResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getRole(),
+                user.getCreatedAt()
+        );
     }
 }
