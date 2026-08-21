@@ -1,10 +1,7 @@
 package com.pedro.finance_control.controller;
 
-import com.pedro.finance_control.dto.auth.AuthResponse;
-import com.pedro.finance_control.dto.auth.LoginRequest;
-import com.pedro.finance_control.dto.auth.LogoutRequest;
-import com.pedro.finance_control.dto.auth.RefreshRequest;
-import com.pedro.finance_control.dto.auth.RegisterRequest;
+import com.pedro.finance_control.dto.auth.*;
+import com.pedro.finance_control.response.AppApiResponse;
 import com.pedro.finance_control.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -14,10 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
@@ -32,7 +26,7 @@ public class AuthController {
             @ApiResponse(responseCode = "400", description = "Invalid request body"),
             @ApiResponse(responseCode = "401", description = "Unauthorized")})
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody @Valid RegisterRequest request){
+    public ResponseEntity<AuthResponse> register(@RequestBody @Valid RegisterRequest request) {
         AuthResponse response = authService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -43,7 +37,7 @@ public class AuthController {
             @ApiResponse(responseCode = "400", description = "Invalid request body"),
             @ApiResponse(responseCode = "401", description = "Unauthorized")})
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody @Valid LoginRequest request){
+    public ResponseEntity<AuthResponse> login(@RequestBody @Valid LoginRequest request) {
         AuthResponse response = authService.login(request);
         return ResponseEntity.ok(response);
     }
@@ -68,5 +62,15 @@ public class AuthController {
     public ResponseEntity<Void> logout(@RequestBody @Valid LogoutRequest request, Authentication authentication) {
         authService.logout(authentication.getName(), request.refreshToken());
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Logout a user", description = "Revoke the refresh token for the authenticated user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "User logged out successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request body"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized")})
+    @GetMapping("/me")
+    public AppApiResponse<UserResponse> getMe(Authentication authentication) {
+        return AppApiResponse.success(authService.getAuthenticatedUser(authentication.getName()));
     }
 }
